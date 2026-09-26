@@ -138,6 +138,12 @@ const { title = "Mona's Bookmark Manager App" } = Astro.props;
         font-weight: 500;
       }
       .clear:hover { border-color: currentColor; }
+      .search-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+        margin: 1.5rem 0 0.75rem;
+      }
 
       ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
       li.bookmark {

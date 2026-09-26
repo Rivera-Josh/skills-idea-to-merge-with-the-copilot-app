@@ -22,22 +22,38 @@
 
 <p id="empty-state" class="empty">No bookmarks yet — add your first link above.</p>
 
+<div id="search-field" class="search-field" hidden>
+  <label for="bookmark-search">Search saved bookmarks</label>
+  <input id="bookmark-search" name="search" type="search" autocomplete="off" />
+</div>
+
 <div id="list-header" hidden>
   <h2 class="list-title">Saved bookmarks</h2>
   <button id="clear-all" type="button" class="clear">Clear all</button>
 </div>
 
+<p id="no-results" class="empty" hidden>No bookmarks match your search.</p>
+
 <ul id="bookmark-list" aria-label="Saved bookmarks" aria-live="polite">
 </ul>
 
 <script>
-  import { formatBookmark, generateSlug, loadBookmarks, normalizeUrl } from '../lib/bookmarks.js';
+  import {
+    filterBookmarksByUrl,
+    formatBookmark,
+    generateSlug,
+    loadBookmarks,
+    normalizeUrl,
+  } from '../lib/bookmarks.js';
 
   const storageKey = 'mona-bookmarks';
   const form = document.getElementById('add-bookmark');
   const urlInput = document.getElementById('url');
+  const searchField = document.getElementById('search-field');
+  const searchInput = document.getElementById('bookmark-search');
   const list = document.getElementById('bookmark-list');
   const emptyState = document.getElementById('empty-state');
+  const noResults = document.getElementById('no-results');
   const listHeader = document.getElementById('list-header');
   const message = document.getElementById('form-message');
   const clearButton = document.getElementById('clear-all');
@@ -48,9 +64,10 @@
   }
 
   function renderBookmarks() {
-    if (!list || !emptyState || !listHeader) return;
+    if (!list || !emptyState || !noResults || !listHeader || !searchField) return;
     list.replaceChildren();
-    bookmarks.forEach((bookmark) => {
+    const visibleBookmarks = filterBookmarksByUrl(bookmarks, searchInput?.value ?? '');
+    visibleBookmarks.forEach((bookmark) => {
       const item = document.createElement('li');
       item.className = 'bookmark';
 
@@ -89,7 +106,9 @@
 
     const hasBookmarks = bookmarks.length > 0;
     emptyState.hidden = hasBookmarks;
+    noResults.hidden = !hasBookmarks || visibleBookmarks.length > 0;
     listHeader.hidden = !hasBookmarks;
+    searchField.hidden = !hasBookmarks;
   }
 
   function persistBookmarks(nextBookmarks) {
@@ -129,11 +148,14 @@
     }
   });
 
+  searchInput?.addEventListener('input', renderBookmarks);
+
   clearButton?.addEventListener('click', () => {
     if (!window.confirm('Clear all saved bookmarks?')) return;
     try {
       window.localStorage.removeItem(storageKey);
       bookmarks = [];
+      if (searchInput) searchInput.value = '';
       renderBookmarks();
       setMessage('All bookmarks cleared.');
     } catch {
