@@ -66,3 +66,10 @@ export function loadBookmarks(value) {
 export function formatBookmark(bookmark) {
   return `${bookmark.url} :: ${bookmark.slug}`;
 }
+
+export function filterBookmarksByUrl(bookmarks, query) {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!normalizedQuery) return bookmarks;
+
+  return bookmarks.filter((bookmark) => bookmark.url.toLowerCase().includes(normalizedQuery));
+}

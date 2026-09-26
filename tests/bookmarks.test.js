@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { formatBookmark, generateSlug, loadBookmarks, normalizeUrl } from '../src/lib/bookmarks.js';
+import {
+  filterBookmarksByUrl,
+  formatBookmark,
+  generateSlug,
+  loadBookmarks,
+  normalizeUrl,
+} from '../src/lib/bookmarks.js';
 
 test('normalizes URLs with and without https to the same saved value', () => {
   assert.equal(normalizeUrl('https://www.example.com'), 'https://www.example.com/');
@@ -36,4 +42,15 @@ test('formats a saved bookmark with the exact visible separator', () => {
     formatBookmark({ url: 'https://www.example.com/', slug: 'mona-7fk2' }),
     'https://www.example.com/ :: mona-7fk2',
   );
+});
+
+test('filters bookmarks by URL case-insensitively and restores all for an empty query', () => {
+  const bookmarks = [
+    { url: 'https://www.example.com/', slug: 'mona-7fk2' },
+    { url: 'https://docs.example.org/', slug: 'mona-8abc' },
+  ];
+
+  assert.deepEqual(filterBookmarksByUrl(bookmarks, 'EXAMPLE.COM'), [bookmarks[0]]);
+  assert.deepEqual(filterBookmarksByUrl(bookmarks, 'not-found'), []);
+  assert.equal(filterBookmarksByUrl(bookmarks, '  '), bookmarks);
 });
